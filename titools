@@ -1,0 +1,124 @@
+#!/bin/bash
+#
+# Copyright (c) 2020 Shamil
+#
+# Source: https://github.com/titools/titools
+#
+# Licensed under the MIT License.
+#
+# Prerequisites:
+#     sudo apt install qbs wget
+#
+
+TOOLS="\
+bios \
+cgt-c2000 \
+cgt-c6000 \
+csl-c6000 \
+hal-c281x \
+"
+
+declare -A VERSIONS
+
+VERSIONS=( \
+["bios"]="5.42.02" \
+["cgt-c2000"]="6.0.0" \
+["cgt-c6000"]="7.4.20 7.3.0" \
+["csl-c6000"]="2.31.00" \
+["cgt-c6000"]="7.4.20 7.3.0" \
+["hal-c281x"]="1.20" \
+)
+
+function add_qbs_value {
+    KEY="profiles.$PROFILE.$1"
+    VALUE="\"$2\""
+    OLD_VALUE=$(qbs config "$KEY" | sed "s/$KEY:\s//")
+    if [[ ! $OLD_VALUE =~ $VALUE ]]; then
+        if [[ "$OLD_VALUE" == "" ]]; then
+            NEW_VALUE=$VALUE
+        elif [[ $OLD_VALUE =~ ^"[".*"]"$ ]]; then
+            NEW_VALUE="$(echo $OLD_VALUE | sed s/]//), $VALUE]"
+        else
+            NEW_VALUE="[$OLD_VALUE, $VALUE]"
+        fi
+        qbs config "$KEY" "$NEW_VALUE"
+    fi
+}
+
+function set_qbs_value {
+    KEY="profiles.$PROFILE.$1"
+    VALUE="$2"
+    qbs config "$KEY" "$VALUE"
+}
+
+function usage {
+    echo -e "Usage: [PROFILE=<profile>] $1 <tool> <version> [<dest-dir>]\n"
+}
+
+set -e
+
+TOOLS_OPTS=$(echo $TOOLS | sed "s/\s/|/g")
+
+if [[ ! "$1" =~ ^($TOOLS_OPTS)$ ]]; then
+    echo -e "Error: Unknown tool\n"
+    usage $0
+    TOOLS_CSV=$(echo $TOOLS | sed "s/\s/, /g")
+    echo -e "Available commands:\n\n$TOOLS_CSV"
+    exit 1
+fi
+
+TOOL="$1"
+TOOL_VERSIONS="${VERSIONS[$TOOL]}"
+VERSIONS_OPTS=$(echo $TOOL_VERSIONS | sed "s/\s/|/g")
+
+if [[ ! "$2" =~ ^($VERSIONS_OPTS)$ ]]; then
+    echo -e "Error: Unknown version\n"
+    usage $0
+    VERSIONS_CSV=$(echo $TOOL_VERSIONS | sed "s/\s/, /g")
+    echo -e "Available versions:\n\n$VERSIONS_CSV"
+    exit 2
+fi
+
+VERSION="$2"
+
+if [[ "$3" == "" ]]; then
+    DEST_DIR=$(pwd)
+    echo "Empty <dest-dir> argument, setting to the current: $DEST_DIR"
+else
+    DEST_DIR=$(echo "$3" | sed "s#^\(.*\)[\\/]\$#\1#")
+    mkdir -p "$DEST_DIR"
+fi
+
+if [[ ! -d "$DEST_DIR" ]]; then
+    echo "Error: Unable to open destination directory: $DEST_DIR"
+    exit 3
+fi
+
+TOOL_DIR="${DEST_DIR}/${TOOL}_${VERSION}"
+TOOL_PKG="${TOOL}_${VERSION}.tar.xz"
+TOOL_URL="https://github.com/titools/titools/releases/download/$TOOL/$TOOL_PKG"
+TEMP_DIR=$(mktemp -d)
+
+if [[ ! -d "$TOOL_DIR" ]]; then
+    wget -nc "$TOOL_URL" -P "$TEMP_DIR"
+    tar -xf "$TEMP_DIR/$TOOL_PKG" -C "$DEST_DIR"
+fi
+
+rm -rf $TEMP_DIR
+
+if [[ ! -d "$TOOL_DIR" ]]; then
+    echo "Error: Tool unpacking failed: $TOOL_DIR"
+    exit 4
+fi
+
+if [[ "$PROFILE" == "" ]]; then
+    PROFILE=ti
+    echo "Empty PROFILE variable, setting to default: \"$PROFILE\""
+fi
+
+if [[ -f "$TOOL_DIR/qbs-script" ]]; then
+    source "$TOOL_DIR/qbs-script"
+fi
+
+qbs config defaultProfile $PROFILE
+qbs config profiles.$PROFILE
