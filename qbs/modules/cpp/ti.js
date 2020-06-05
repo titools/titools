@@ -24,8 +24,12 @@ function commonArgs(input) {
     if (input.cpp.endianness && input.cpp.endianness.toLowerCase() == "big")
         args.push("--big_endian");
 
-    var abi = (input.cpp.outputFormat && input.cpp.outputFormat.toLowerCase()) == "coff" ? "coffabi" : "eabi";
-    args.push("--abi=" + abi);
+    if (input.cpp.outputFormat) {
+        if (input.cpp.outputFormat.toLowerCase() == "coff")
+            args.push("--abi=coffabi");
+        else if (input.cpp.outputFormat.toLowerCase() == "elf")
+            args.push("--abi=eabi");
+    }
 
     if (input.qbs.buildVariant == "debug") {
         args.push("-g");

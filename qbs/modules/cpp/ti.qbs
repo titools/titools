@@ -43,7 +43,7 @@ Module {
         description: "Endianness."
     }
 
-    property string outputFormat: "elf"
+    property string outputFormat
     PropertyOptions {
         name: "outputFormat"
         allowedValues: ["elf", "coff"]

@@ -18,7 +18,6 @@ Product {
 
     property stringList commonFlags: {
         flags = [
-            "--diag_wrap=off",
             "--display_error_number",
             "--diag_warning=225",
         ];
