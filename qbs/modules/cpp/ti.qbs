@@ -97,7 +97,7 @@ Module {
 
         Artifact {
             fileTags: ["obj"]
-            filePath: input.baseDir + "/" + input.completeBaseName + ".obj"
+            filePath: product.buildDirectory + "/" + input.completeBaseName + ".obj"
         }
 
         prepare: ti.prepareCompiler.apply(ti, arguments)
@@ -109,22 +109,22 @@ Module {
 
         Artifact {
             fileTags: ["c"]
-            filePath: input.baseDir + "/" + input.completeBaseName + "cfg_c.c"
+            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg_c.c"
         }
 
         Artifact {
             fileTags: ["hpp"]
-            filePath: input.baseDir + "/" + input.completeBaseName + "cfg.h"
+            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg.h"
         }
 
         Artifact {
             fileTags: ["asm"]
-            filePath: input.baseDir + "/" + input.completeBaseName + "cfg.s??"
+            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg.s??"
         }
 
         Artifact {
             fileTags: ["cmd"]
-            filePath: input.baseDir + "/" + input.completeBaseName + "cfg.cmd"
+            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg.cmd"
         }
 
         prepare: ti.prepareTconf.apply(ti, arguments)

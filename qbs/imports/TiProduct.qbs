@@ -52,4 +52,8 @@ Product {
     property pathList includePaths: [
         buildDirectory,
     ]
+
+    property stringList staticLibraries: [
+        "libc.a",
+    ]
 }
