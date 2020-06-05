@@ -13,10 +13,8 @@ Product {
     property string installDir
 
     Depends { name: "cpp" }
-    cpp.compilerFlags: commonFlags
-    cpp.linkerFlags: commonFlags.concat(["--reread_libs"])
 
-    property stringList commonFlags: {
+    cpp.compilerFlags: {
         flags = [
             "--display_error_number",
             "--diag_warning=225",
@@ -25,6 +23,8 @@ Product {
             flags.push("-ml", "-mt");
         return flags;
     }
+
+    cpp.linkerFlags: ["--reread_libs", "--display_error_number"]
 
     property stringList defines: {
         var defines = [

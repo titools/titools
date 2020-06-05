@@ -42,6 +42,10 @@ function commonArgs(input) {
             args.push("-mf" + input.cpp.optimizeSpeed);
     }
 
+    var compilerFlags = input.cpp.compilerFlags;
+    for (var i in compilerFlags)
+        args.push(compilerFlags[i]);
+
     return args;
 }
 
@@ -66,7 +70,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     var filePath = input.filePath;
     var fileName = input.fileName;
     if (input.filePath.endsWith("??")) {
-        var exts = ["28", "62", "64", "66"];
+        var exts = ["24", "28", "43", "55", "62", "64", "66", "67"];
         for (var i in exts) {
             filePath = input.filePath.replace(/\?\?$/, exts[i]);
             fileName = input.fileName.replace(/\?\?$/, exts[i]);
@@ -83,10 +87,6 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     args = args.concat(unitedArgs("-i", product.includePaths, input.cpp.includePaths));
     args.push(filePath); // Source file
 
-    var compilerFlags = input.cpp.compilerFlags;
-    for (var i in compilerFlags)
-        args.push(compilerFlags[i]);
-
     if (input.cpp.misra && input.cpp.misra.length > 0)
         args.push("--check_misra=" + input.cpp.misra.join(","));
 
@@ -95,6 +95,22 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     cmd.highlight = "compiler";
     cmd.jobPool = "compiler";
     cmd.workingDirectory = product.destinationDirectory;
+
+    return cmd;
+}
+
+function prepareHex(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var args = [];
+    args.push("-o", output.filePath); // Output file
+    args.push(input.filePath); // Input file
+
+    if (input.cpp.hexFlags && input.cpp.hexFlags.length > 0)
+        args = args.concat(input.cpp.hexFlags);
+
+    var cmd = new Command(input.cpp.hexName, args);
+    cmd.description = "generating " + output.fileName;
+    cmd.highlight = "compiler";
+    cmd.jobPool = "compiler";
 
     return cmd;
 }

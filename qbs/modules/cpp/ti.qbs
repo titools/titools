@@ -7,9 +7,11 @@
 //
 
 import qbs
+import qbs.ModUtils
 import "ti.js" as ti
 
 Module {
+    // Properties
     property string target
 
     property path compilerName
@@ -33,6 +35,7 @@ Module {
 
     property stringList compilerFlags
     property stringList linkerFlags
+    property stringList hexFlags
 
     property string compilerVersion
     property string biosVersion
@@ -65,10 +68,11 @@ Module {
         description: "Initialization model."
     }
 
+    // Auxiliary outputs
     property string mapFile
+    property string hexFile
 
-    // Advanced
-
+    // Advanced properties
     property path absName // Absolute Lister
     property path adviceName // Advice and Performance
     property path builderName // Library Builder
@@ -83,6 +87,54 @@ Module {
     property path xrefName // XREF Utility
 
     property stringList misra
+
+    // Validator
+    validate: {
+        var validator = new ModUtils.PropertyValidator("cpp");
+        validator.setRequiredProperty("target", target);
+        validator.validate();
+    }
+
+    // Rules
+    Rule {
+        id: tconfCompiler
+        inputs: ["tconf"]
+
+        Artifact {
+            fileTags: ["c"]
+            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg_c.c"
+        }
+
+        Artifact {
+            fileTags: ["hpp"]
+            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg.h"
+        }
+
+        Artifact {
+            fileTags: ["asm"]
+            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg.s??"
+        }
+
+        Artifact {
+            fileTags: ["cmd"]
+            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg.cmd"
+        }
+
+        prepare: ti.prepareTconf.apply(ti, arguments)
+    }
+
+    Rule {
+        id: compiler
+        inputs: ["asm", "c", "cpp"]
+        auxiliaryInputs: ["hpp"]
+
+        Artifact {
+            fileTags: ["obj"]
+            filePath: product.buildDirectory + "/" + input.completeBaseName + ".obj"
+        }
+
+        prepare: ti.prepareCompiler.apply(ti, arguments)
+    }
 
     Rule {
         id: archiver
@@ -112,44 +164,19 @@ Module {
     }
 
     Rule {
-        id: compiler
-        inputs: ["asm", "c", "cpp"]
-        auxiliaryInputs: ["hpp"]
+        id: hex
+        condition: product.cpp.hexFile !== undefined
+        inputs: ["executable"]
 
         Artifact {
-            fileTags: ["obj"]
-            filePath: product.buildDirectory + "/" + input.completeBaseName + ".obj"
+            filePath: product.destinationDirectory + "/" + product.targetName + ".hex"
+            fileTags: ["hex"]
         }
 
-        prepare: ti.prepareCompiler.apply(ti, arguments)
+        prepare: ti.prepareHex.apply(ti, arguments)
     }
 
-    Rule {
-        id: tconfCompiler
-        inputs: ["tconf"]
-
-        Artifact {
-            fileTags: ["c"]
-            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg_c.c"
-        }
-
-        Artifact {
-            fileTags: ["hpp"]
-            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg.h"
-        }
-
-        Artifact {
-            fileTags: ["asm"]
-            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg.s??"
-        }
-
-        Artifact {
-            fileTags: ["cmd"]
-            filePath: product.buildDirectory + "/" + input.completeBaseName + "cfg.cmd"
-        }
-
-        prepare: ti.prepareTconf.apply(ti, arguments)
-    }
+    // Tags
 
     // C sources
     FileTagger {
@@ -165,25 +192,25 @@ Module {
 
     // Headers
     FileTagger {
-        patterns: ["*.h", "*.H", "*.hpp", "*.hxx", "*.h++"]
+        patterns: ["*.h", "*.H", "*.hpp", "*.hxx", "*.h++", "*.h??", "*.inc"]
         fileTags: ["hpp"]
     }
 
     // Linker scripts
     FileTagger {
-        patterns: ["*.cmd"]
+        patterns: ["*.cmd", "*.ld", "*.lds"]
         fileTags: ["cmd"]
     }
 
     // Assembler sources
     FileTagger {
-        patterns: ["*.asm", "*.s??"]
+        patterns: ["*.asm", "*.ASM", "*.s", "*.s??", "*.S", "*.sa"]
         fileTags: ["asm"]
     }
 
     // BIOS configs
     FileTagger {
-        patterns: "*.tcf"
+        patterns: ["*.tcf", "*.TCF"]
         fileTags: ["tconf"]
     }
 }

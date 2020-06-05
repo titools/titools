@@ -9,13 +9,18 @@
 import qbs
 
 TiProduct {
-    type: ["executable"]
+    type: {
+        var types = ["executable"];
+        if (cpp.hexFile !== undefined)
+            types.push("hex");
+        return types;
+    }
 
     installDir: ""
 
     Group {
         condition: install
-        fileTagsFilter: "executable";
+        fileTagsFilter: ["executable", "hex"]
         qbs.install: true
         qbs.installPrefix: ""
         qbs.installDir: installDir
