@@ -36,8 +36,10 @@ function commonArgs(input) {
     } else if (input.qbs.buildVariant == "release") {
         if (input.cpp.optimizationLevel)
             args.push("-O" + input.cpp.optimizationLevel);
-        if (input.cpp.optimizationSize)
-            args.push("-ms" + input.cpp.optimizationSize);
+        if (input.cpp.optimizeSize)
+            args.push("-ms" + input.cpp.optimizeSize);
+        if (input.cpp.optimizeSpeed)
+            args.push("-mf" + input.cpp.optimizeSpeed);
     }
 
     return args;
@@ -85,6 +87,9 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     for (var i in compilerFlags)
         args.push(compilerFlags[i]);
 
+    if (input.cpp.misra && input.cpp.misra.length > 0)
+        args.push("--check_misra=" + input.cpp.misra.join(","));
+
     var cmd = new Command(input.cpp.compilerName, args);
     cmd.description = "compiling " + fileName;
     cmd.highlight = "compiler";
@@ -98,6 +103,9 @@ function prepareLinker(project, product, inputs, outputs, input, output, explici
     var args = commonArgs(product);
 
     args.push("-z"); // Invoke linker
+
+    if (product.cpp.mapFile)
+        args.push("-m" + product.cpp.mapFile);
 
     args.push("--stack_size=" + product.cpp.stackSize);
     args.push("--heap_size=" + product.cpp.heapSize);
@@ -125,7 +133,7 @@ function prepareLinker(project, product, inputs, outputs, input, output, explici
     for (var i in linkerFlags)
         args.push(linkerFlags[i]);
 
-    var cmd = new Command(product.cpp.linkerName, args);
+    var cmd = new Command(product.cpp.compilerName, args);
     cmd.description = "linking " + output.fileName;
     cmd.highlight = "linker";
     cmd.jobPool = "linker";

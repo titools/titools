@@ -16,7 +16,8 @@ Module {
     property path assemblerName
     property path linkerName
     property path archiverName
-    property path nmName
+    property path hexName // Hex Converter
+    property path nmName // Name Utility
     property path stripName
     property path tconfName
 
@@ -51,7 +52,8 @@ Module {
     }
 
     property int optimizationLevel
-    property int optimizationSize
+    property int optimizeSize
+    property int optimizeSpeed
 
     property int stackSize: 0x800
     property int heapSize: 0x800
@@ -62,6 +64,25 @@ Module {
         allowedValues: ["rom", "ram"]
         description: "Initialization model."
     }
+
+    property string mapFile
+
+    // Advanced
+
+    property path absName // Absolute Lister
+    property path adviceName // Advice and Performance
+    property path builderName // Library Builder
+    property path consultantName // Consultant Generator
+    property path demanglerName
+    property path disassemblerName 
+    property path embedName // Embed Utility
+    property path libinfoName // Library Information Archiver
+    property path mergeName // File Merge
+    property path objectDisplayName // Object File Display
+    property path prelinkName
+    property path xrefName // XREF Utility
+
+    property stringList misra
 
     Rule {
         id: archiver
