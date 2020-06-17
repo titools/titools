@@ -76,6 +76,7 @@ Module {
     property path absName // Absolute Lister
     property path adviceName // Advice and Performance
     property path builderName // Library Builder
+    property path clangParserName
     property path consultantName // Consultant Generator
     property path demanglerName
     property path disassemblerName 
